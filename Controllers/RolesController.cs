@@ -83,7 +83,7 @@ namespace API.Controllers
             }
         }
 
-        [Route("getRole/{id")]
+        [Route("getRole/{id}")]
         [HttpGet]
         public IHttpActionResult GetRole(int id)
         {
