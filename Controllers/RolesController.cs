@@ -46,6 +46,78 @@ namespace API.Controllers
             }
         }
 
+        [Route("usersCount/{id}")]
+        [HttpGet]
+        public IHttpActionResult GetUsersCount(int id)
+        {
+            var serviceCallResult = new ServiceCallResult<int>()
+            {
+                ResultCode = ResultCodeEnum.Successful,
+                Remark = "Count retrieved successfully!"
+            };
+            using (var db = new CRUDEntities())
+            {
+                try
+                {
+                    var role = db.Roles.Where(r => r.Id == id).FirstOrDefault();
+                    if (role != null)
+                    {
+                        var usersCount = db.Entry(role).Collection(r => r.Users).Query().Count();
+                        serviceCallResult.data = usersCount;
+                        return Content<ServiceCallResult<int>>(HttpStatusCode.OK,serviceCallResult);
+                    }
+                    else
+                    {
+                        serviceCallResult.ResultCode = ResultCodeEnum.Fail;
+                        serviceCallResult.Remark = "Role not found";
+                        serviceCallResult.data = 0;
+                        return Content<ServiceCallResult<int>>(HttpStatusCode.NotFound, serviceCallResult);
+                    }
+                } catch (Exception ex)
+                {
+                    serviceCallResult.ResultCode = ResultCodeEnum.Error;
+                    serviceCallResult.Remark = "An Error Occured. Contact ICT.";
+                    serviceCallResult.data = 0;
+                    return Content<ServiceCallResult<int>>(HttpStatusCode.InternalServerError, serviceCallResult);
+                }
+            }
+        }
+
+        [Route("getRole/{id")]
+        [HttpGet]
+        public IHttpActionResult GetRole(int id)
+        {
+            var serviceCallResult = new ServiceCallResult<object>()
+            {
+                ResultCode = ResultCodeEnum.Successful,
+                data = null
+            };
+            using (var db = new CRUDEntities())
+            {
+                try
+                {
+                    var role = db.Roles.Where(r => r.Id == id).FirstOrDefault();
+                    if (role != null)
+                    {
+                        serviceCallResult.Remark = "Role loaded";
+                        serviceCallResult.data = RoleDto.FromEFModel(role);
+                        return Content<ServiceCallResult<object>>(HttpStatusCode.OK, serviceCallResult);
+                    }
+                    else
+                    {
+                        serviceCallResult.Remark = "Role not found";
+                        serviceCallResult.ResultCode = ResultCodeEnum.Fail;
+                        return Content<ServiceCallResult<object>>(HttpStatusCode.NotFound, serviceCallResult);
+                    }
+                } catch (Exception ex)
+                {
+                    serviceCallResult.Remark = $"Error{ex}";
+                    serviceCallResult.ResultCode = ResultCodeEnum.Error;
+                    return Content<ServiceCallResult<object>>(HttpStatusCode.InternalServerError, serviceCallResult);
+                }
+            }
+        }
+
         [Route("add")]
         [HttpPost]
         public IHttpActionResult AddRole(RoleDto roleDetails)
